@@ -155,7 +155,7 @@ class Connect:
 
 
     def entry_start(self, appSettings):
-        self.entry = Entry(appSettings['ServoMotor'][0]['Signal'], appSettings['SteppingMotor'][0], self.log_message, self.cap)
+        self.entry = Entry(appSettings['ServoMotor'][0]['Signal'], appSettings['SteppingMotor'][0], self.log_message, self.cap, appSettings['RaspberryPi'], appSettings['ModelPath'], appSettings['BackgroundPath'])
         
 
     def update_frame(self):
