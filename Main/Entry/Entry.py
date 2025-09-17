@@ -54,11 +54,106 @@ class Entry:
         if self.recognizeThread is not None:
             self.recognizeThread.join(2)
 
-    def start_recognize(self):
+    # def start_recognize(self):
 
+    #     device = torch.device("mps" if torch.backends.mps.is_available() else
+    #                         "cuda" if torch.cuda.is_available() else "cpu")
+        
+    #     try:
+    #         model = resnet18(weights=None)
+    #         num_classes = 4
+    #         model.fc = nn.Linear(model.fc.in_features, num_classes)
+    #         model.load_state_dict(torch.load(self.modelPath, map_location=device))
+    #         model = model.to(device)
+    #         model.eval()
+
+    #         transform = transforms.Compose([
+    #             transforms.Resize((224, 224)),
+    #             transforms.ToTensor(),
+    #             transforms.Normalize([0.485, 0.456, 0.406],
+    #                                 [0.229, 0.224, 0.225])
+    #         ])
+
+    #         classes = ["other", "paper", "plastic", "steel"]
+    #         ret, prev_frame = self.cap.read()
+    #         if not ret:
+    #             self.logMessage("[ERROR] Camera not available for recognition")
+    #             return
+
+    #         prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
+    #         last_detect_time = 0
+    #         cooldown = 1.5 
+
+    #         self.logMessage("[INFO] Recognition started...")
+
+    #         while not self.kill.is_set():
+    #             time.sleep(3)
+    #             ret, frame = self.cap.read()
+    #             if not ret:
+    #                 self.logMessage("[ERROR] Failed to grab frame")
+    #                 break
+
+    #             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    #             diff = cv2.absdiff(prev_gray, gray)
+    #             _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
+    #             non_zero_count = cv2.countNonZero(thresh)
+    #             self.processing = False
+    #             if non_zero_count > 5000 and (datetime.now().timestamp() - last_detect_time > cooldown) and not self.processing:
+    #                 self.processing = True
+    #                 last_detect_time = datetime.now().timestamp()
+
+    #                 newFrame, objectMask, segmentedObject, colorPatch, dominantColor = self.segmentation(frame, self.backgroundPath)
+    #                 imagePath = self.save_image(newFrame, objectMask, segmentedObject, colorPatch)
+
+    #                 img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    #                 img_pil = Image.fromarray(img_rgb)
+    #                 img_tensor = transform(img_pil).unsqueeze(0).to(device)
+
+    #                 with torch.no_grad():
+    #                     outputs = model(img_tensor)
+    #                     _, predicted = torch.max(outputs, 1)
+    #                     label = classes[predicted.item()]
+
+    #                 self.logMessage(f"[INFO] Classified as: {label}")
+    #                 self.create_log(label)
+
+    #                 if self.raspberryPi:
+    #                     self.stepperMotor = StepperMotor(
+    #                         int(self.steppingMotorPin["IN1"]), 
+    #                         int(self.steppingMotorPin["IN2"]), 
+    #                         int(self.steppingMotorPin["IN3"]), 
+    #                         int(self.steppingMotorPin["IN4"]),
+    #                         test_material = label
+    #                     )
+    #                     time.sleep(2)
+
+    #                     self.servoMotor = ServoMotor(int(self.servoMotorPin))
+    #                     time.sleep(1)
+
+    #                     self.servoMotor.open()
+    #                     time.sleep(1)
+
+    #                     self.servoMotor.close()
+    #                     time.sleep(1)
+                        
+    #                     self.stepperMotor.back_origin()
+    #                     time.sleep(2)
+
+    #                 self.create_task_history(imagePath, dominantColor, label)
+
+    #                 self.processing = False 
+    #                 time.sleep(2)
+
+
+    #             prev_gray = gray
+
+    #     except Exception as e:
+    #         self.logMessage(f"Fail due to {str(e)}")
+    #         self.create_log(f"Fail due to str{e}")
+    def start_recognize(self):
         device = torch.device("mps" if torch.backends.mps.is_available() else
                             "cuda" if torch.cuda.is_available() else "cpu")
-        
+
         try:
             model = resnet18(weights=None)
             num_classes = 4
@@ -75,6 +170,7 @@ class Entry:
             ])
 
             classes = ["other", "paper", "plastic", "steel"]
+            
             ret, prev_frame = self.cap.read()
             if not ret:
                 self.logMessage("[ERROR] Camera not available for recognition")
@@ -83,11 +179,13 @@ class Entry:
             prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
             last_detect_time = 0
             cooldown = 1.5 
-
+            
+            self.processing = False
+            self.is_moving = False
+            
             self.logMessage("[INFO] Recognition started...")
 
             while not self.kill.is_set():
-                time.sleep(3)
                 ret, frame = self.cap.read()
                 if not ret:
                     self.logMessage("[ERROR] Failed to grab frame")
@@ -97,54 +195,59 @@ class Entry:
                 diff = cv2.absdiff(prev_gray, gray)
                 _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
                 non_zero_count = cv2.countNonZero(thresh)
-                self.processing = False
-                if non_zero_count > 5000 and (datetime.now().timestamp() - last_detect_time > cooldown) and not self.processing:
+                
+                if non_zero_count > 5000 and not self.is_moving and not self.processing:
+                    self.logMessage("[INFO] Motion started...")
+                    self.is_moving = True
                     self.processing = True
-                    last_detect_time = datetime.now().timestamp()
 
-                    newFrame, objectMask, segmentedObject, colorPatch, dominantColor = self.segmentation(frame, self.backgroundPath)
-                    imagePath = self.save_image(newFrame, objectMask, segmentedObject, colorPatch)
+                if self.is_moving:
+                    if non_zero_count < 1000 and (datetime.now().timestamp() - last_detect_time > cooldown):
+                        self.is_moving = False
+                        last_detect_time = datetime.now().timestamp()
+                        self.logMessage("[INFO] Motion stopped. Capturing and classifying...")
 
-                    img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    img_pil = Image.fromarray(img_rgb)
-                    img_tensor = transform(img_pil).unsqueeze(0).to(device)
-
-                    with torch.no_grad():
-                        outputs = model(img_tensor)
-                        _, predicted = torch.max(outputs, 1)
-                        label = classes[predicted.item()]
-
-                    self.logMessage(f"[INFO] Classified as: {label}")
-                    self.create_log(label)
-
-                    if self.raspberryPi:
-                        self.stepperMotor = StepperMotor(
-                            int(self.steppingMotorPin["IN1"]), 
-                            int(self.steppingMotorPin["IN2"]), 
-                            int(self.steppingMotorPin["IN3"]), 
-                            int(self.steppingMotorPin["IN4"]),
-                            test_material = label
-                        )
-                        time.sleep(2)
-
-                        self.servoMotor = ServoMotor(int(self.servoMotorPin), self.raspberryPi)
-                        time.sleep(1)
-
-                        self.servoMotor.open()
-                        time.sleep(1)
-
-                        self.servoMotor.close()
-                        time.sleep(1)
+                        current_frame_for_analysis = frame 
                         
-                        self.stepperMotor.back_origin()
-                        time.sleep(2)
+                        newFrame, objectMask, segmentedObject, colorPatch, dominantColor = self.segmentation(current_frame_for_analysis, self.backgroundPath)
+                        imagePath = self.save_image(newFrame, objectMask, segmentedObject, colorPatch)
 
-                    self.create_task_history(imagePath, dominantColor, label)
+                        img_rgb = cv2.cvtColor(current_frame_for_analysis, cv2.COLOR_BGR2RGB)
+                        img_pil = Image.fromarray(img_rgb)
+                        img_tensor = transform(img_pil).unsqueeze(0).to(device)
 
-                    self.processing = False 
-                    time.sleep(2)
+                        with torch.no_grad():
+                            outputs = model(img_tensor)
+                            _, predicted = torch.max(outputs, 1)
+                            label = classes[predicted.item()]
 
-
+                        self.logMessage(f"[INFO] Classified as: {label}")
+                        self.create_log(label)
+                        
+                        if self.raspberryPi:
+                            self.stepperMotor = StepperMotor(
+                                int(self.steppingMotorPin["IN1"]), 
+                                int(self.steppingMotorPin["IN2"]), 
+                                int(self.steppingMotorPin["IN3"]), 
+                                int(self.steppingMotorPin["IN4"]),
+                                raspberryPi = self.raspberryPi,
+                                test_material = label
+                            )
+                            time.sleep(2)
+                            self.servoMotor = ServoMotor(int(self.servoMotorPin), self.raspberryPi)
+                            time.sleep(1)
+                            self.servoMotor.open()
+                            time.sleep(1)
+                            self.servoMotor.close()
+                            time.sleep(1)
+                            self.stepperMotor.back_origin()
+                            time.sleep(2)
+                            
+                        self.create_task_history(imagePath, dominantColor, label)
+                        
+                        self.processing = False
+                        time.sleep(1)
+                
                 prev_gray = gray
 
         except Exception as e:
@@ -226,13 +329,13 @@ class Entry:
 
         if frame is None or backgroundFrame is None:
             self.create_log("Error: Could not load one of the images. Check the file paths.")
-            return frame, None, None, None
+            return frame, None, None, None, None
     
         objectMask = self.get_object_mask(frame, backgroundFrame)
 
         if np.sum(objectMask) < 1000:
             self.create_log("No object detected. The mask is empty.")
-            return frame, None, None, None
+            return frame, None, None, None, None
 
         segmentedObject = cv2.bitwise_and(frame, frame, mask=objectMask)
         dominantColor = self.get_dominant_color(cv2.cvtColor(segmentedObject, cv2.COLOR_BGR2RGB), objectMask)

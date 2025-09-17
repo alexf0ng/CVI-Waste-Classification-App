@@ -2,7 +2,8 @@ import time
 
 class ServoMotor:
     def __init__(self, gpio, raspberryPi, chip=0, min_us=500, max_us=2500):
-        if raspberryPi:
+        self.raspberryPi = raspberryPi
+        if self.raspberryPi:
             import lgpio
             self.chip = lgpio.gpiochip_open(chip)
             self.gpio = gpio
@@ -15,25 +16,35 @@ class ServoMotor:
             pass
 
     def move_to(self, angle):
-        if angle < 0: angle = 0
-        if angle > 180: angle = 180
+        if self.raspberryPi:
+            import lgpio
+            if angle < 0: angle = 0
+            if angle > 180: angle = 180
 
-        pulse_us = self.min_us + (angle / 180.0) * (self.max_us - self.min_us)
+            pulse_us = self.min_us + (angle / 180.0) * (self.max_us - self.min_us)
 
-        duty_cycle = (pulse_us * 1000) / self.period_ns * 100
-        lgpio.tx_pwm(self.chip, self.gpio, self.frequency, duty_cycle)
-        time.sleep(0.5)
+            duty_cycle = (pulse_us * 1000) / self.period_ns * 100
+            lgpio.tx_pwm(self.chip, self.gpio, self.frequency, duty_cycle)
+            time.sleep(0.5)
+        else:
+            pass
 
     def open(self):
-        self.move_to(180)
+        if self.raspberryPi:
+            import lgpio
+            self.move_to(180)
 
     def close(self):
-        self.move_to(0)
-        self.cleanup()
+        if self.raspberryPi:
+            import lgpio
+            self.move_to(0)
+            self.cleanup()
 
     def cleanup(self):
-        lgpio.gpio_free(self.chip, self.gpio)
-        lgpio.gpiochip_close(self.chip)
+        if self.raspberryPi:
+            import lgpio
+            lgpio.gpio_free(self.chip, self.gpio)
+            lgpio.gpiochip_close(self.chip)
 
 # Testing
 # if __name__ == "__main__":
