@@ -5,7 +5,9 @@ import cv2
 import time
 import torch
 import torch.nn as nn
+import numpy as np
 import torchvision.transforms as transforms
+from sklearn.cluster import KMeans
 from PIL import Image
 from torchvision.models import resnet18
 from datetime import datetime, timedelta
@@ -18,6 +20,10 @@ class Entry:
 
     columnNames = {
         'Image': pd.Series([], dtype='str'),
+        'Object Mask': pd.Series([], dtype='str'),
+        'Segmented Object': pd.Series([], dtype='str'),
+        'Dominant Color': pd.Series([], dtype='str'),
+        'Dominant Color(RGB)': pd.Series([], dtype='str'),
         'CreatedDate': pd.Series([], dtype='datetime64[ns]'),
         'Classification': pd.Series([], dtype='str')
     }
@@ -70,12 +76,12 @@ class Entry:
         self.logMessage("[INFO] Recognition started...")
 
         while True:
+            time.sleep(3)
             ret, frame = self.cap.read()
             if not ret:
                 self.logMessage("[ERROR] Failed to grab frame")
                 break
 
-            time.sleep(2)
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             diff = cv2.absdiff(prev_gray, gray)
             _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
@@ -85,7 +91,8 @@ class Entry:
                 self.processing = True
                 last_detect_time = datetime.now().timestamp()
 
-                imgPath = self.save_image(frame)
+                newFrame, objectMask, segmentedObject, colorPatch, dominantColor = self.segmentation(frame, "/home/alexfong/PythonProjects/Background.jpg")
+                imagePath = self.save_image(newFrame, objectMask, segmentedObject, colorPatch)
 
                 img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img_pil = Image.fromarray(img_rgb)
@@ -121,7 +128,7 @@ class Entry:
                     self.stepperMotor.back_origin()
                     time.sleep(2)
 
-                self.create_task_history(imgPath, label)
+                self.create_task_history(imagePath, dominantColor, label)
 
                 self.processing = False 
                 time.sleep(2)
@@ -129,26 +136,33 @@ class Entry:
 
             prev_gray = gray
 
-    def save_image(self, frame):
+    def save_image(self, frame, objectMask, segmentedObject, colorPatch):
         currentDate = datetime.now().strftime('%Y-%m-%d')
         currentTime = datetime.now().strftime('%H%M%S')
 
-        if not os.path.isdir(self.logDirectoryPath):
-            os.makedirs(self.logDirectoryPath)
-        if not os.path.isdir(self.logDirectoryPath + '/' + currentDate):
-            os.makedirs(self.logDirectoryPath + '/' + currentDate)
-        if not os.path.isdir(self.logDirectoryPath + '/' + currentDate + '/Image'):
-            os.makedirs(self.logDirectoryPath + '/' + currentDate + '/Image')
+        baseDir = os.path.join(self.logDirectoryPath, currentDate, "Image", currentTime)
+        os.makedirs(os.path.join(baseDir, "Original"), exist_ok=True)
+        os.makedirs(os.path.join(baseDir, "ObjectMask"), exist_ok=True)
+        os.makedirs(os.path.join(baseDir, "SegmentedObject"), exist_ok=True)
+        os.makedirs(os.path.join(baseDir, "DominantColor"), exist_ok=True)
 
         try:
-            imagePath = self.logDirectoryPath + '/' + currentDate + '/Image/' + currentTime + '.jpg'
+            imagePath = os.path.join(baseDir, "Original", f"{currentTime}.jpg")
+            objectMaskPath = os.path.join(baseDir, "ObjectMask", f"{currentTime}.jpg")
+            segmentedObjectPath = os.path.join(baseDir, "SegmentedObject", f"{currentTime}.jpg")
+            dominantColorPath = os.path.join(baseDir, "DominantColor", f"{currentTime}.jpg")
+
             cv2.imwrite(imagePath, frame)
+            cv2.imwrite(objectMaskPath, objectMask)
+            cv2.imwrite(segmentedObjectPath, segmentedObject)
+            cv2.imwrite(dominantColorPath, colorPatch)
 
-            return imagePath
+            return [imagePath, objectMaskPath, segmentedObjectPath, dominantColorPath]
+
         except Exception as e:
-            self.create_log(f"Unable to store the image due to {str(e)}")     
+            self.create_log(f"Unable to store the image due to {str(e)}")
+            return [str(e)] * 4
 
-            return str(e)
 
 
     def create_log(self, input):
@@ -167,7 +181,7 @@ class Entry:
             file.write(logString)
 
 
-    def create_task_history(self, imagePath, label):
+    def create_task_history(self, imagePath, dominantColor, label):
         currentDate = datetime.now().strftime('%Y-%m-%d')
         if not os.path.isdir(self.logDirectoryPath):
             os.makedirs(self.logDirectoryPath)
@@ -178,13 +192,64 @@ class Entry:
 
         try:
             newRow = {
-                'Image': imagePath,
+                'Image': imagePath[0],
+                'Object Mask': imagePath[1],
+                'Segmented Object': imagePath[2],
+                'Dominant Color': imagePath[3],
+                'Dominant Color(RGB)': dominantColor,
                 'CreatedDate': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'Classification': label
+                'Classification': label,
             }
             self.classificationSummary = pd.concat([self.classificationSummary, pd.DataFrame([newRow])], ignore_index=True)
             self.classificationSummary.to_csv(self.logDirectoryPath+ '/' + currentDate + '/TaskHistory/' + self.createdDateTime +'ClassificationSummary.csv', index=False)
         except Exception as e:
             self.create_log('Cannot update ClassificationSummary.csv file, close the csv file so that it can be updated')
 
+    def segmentation(self, frame, backgroundImagePath):
+        backgroundFrame = cv2.imread(backgroundImagePath)
 
+        if frame is None or backgroundFrame is None:
+            self.create_log("Error: Could not load one of the images. Check the file paths.")
+            return frame, None, None, None
+    
+        objectMask = self.get_object_mask(frame, backgroundFrame)
+
+        if np.sum(objectMask) < 1000:
+            self.create_log("No object detected. The mask is empty.")
+            return frame, None, None, None
+
+        segmentedObject = cv2.bitwise_and(frame, frame, mask=objectMask)
+        dominantColor = self.get_dominant_color(cv2.cvtColor(segmentedObject, cv2.COLOR_BGR2RGB), objectMask)
+        # print("Dominant color (R,G,B):", dominantColor)
+
+        colorPatch = np.zeros((100, 100, 3), dtype=np.uint8)
+        colorPatch[:] = dominantColor[::-1]
+
+        return frame, objectMask, segmentedObject, colorPatch, dominantColor
+
+    def get_dominant_color(self, image, mask, k=3):
+        pixels = image[mask == 255]
+        if len(pixels) == 0:
+            return (0, 0, 0)
+
+        kmeans = KMeans(n_clusters=k, n_init=10)
+        kmeans.fit(pixels)
+
+        counts = np.bincount(kmeans.labels_)
+        dominant = kmeans.cluster_centers_[np.argmax(counts)]
+
+        return tuple(map(int, dominant))
+    
+    def get_object_mask(self, frame, background_frame):
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray_bg = cv2.cvtColor(background_frame, cv2.COLOR_BGR2GRAY)
+
+        diff = cv2.absdiff(gray_frame, gray_bg)
+        
+        _, mask = cv2.threshold(diff, 30, 255, cv2.THRESH_BINARY)
+        
+        kernel = np.ones((5, 5), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+        
+        return mask
