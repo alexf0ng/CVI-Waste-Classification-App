@@ -17,7 +17,8 @@ class ConfigReader:
                     "IN3" : "27",
                     "IN4" : "22",
                 }
-            ]
+            ],
+            "RaspberryPi" : False
         }
 
         self.env = "Demo"

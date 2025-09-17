@@ -9,13 +9,12 @@ import torchvision.transforms as transforms
 from PIL import Image
 from torchvision.models import resnet18
 from datetime import datetime, timedelta
-# from Main.ServoMotor.ServoMotor import ServoMotor
-# from Main.StepperMotor.StepperMotor import StepperMotor
+from Main.ServoMotor.ServoMotor import ServoMotor
+from Main.StepperMotor.StepperMotor import StepperMotor
 
 class Entry:
     relativePath = os.getcwd()
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    logDirectoryPath = os.path.join(base_dir, 'WasteClassificationAppLog')
+    logDirectoryPath = os.path.join(relativePath, 'WasteClassificationAppLog')
     # columnNames = {
     #     'Image': pd.Series([], dtype='str'),
     #     'CreatedDate': pd.Series([], dtype='datetime64[ns]'),
@@ -24,16 +23,11 @@ class Entry:
     createdDateTime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     # classificationSummary = pd.DataFrame(columnNames)
 
-    def __init__(self, servoMotorPin, stepperMotorPin, logMessage, cap):
+    def __init__(self, servoMotorPin, stepperMotorPin, logMessage, cap, raspberryPi):
         self.servoMotorPin = servoMotorPin
         self.steppingMotorPin = stepperMotorPin
-        # self.servoMotor = ServoMotor(gpio=int(servoMotorPin))
-        # self.steppingMotor = StepperMotor(
-        #     int(self.steppingMotorPin["IN1"]), 
-        #     int(self.steppingMotorPin["IN2"]), 
-        #     int(self.steppingMotorPin["IN3"]), 
-        #     int(self.steppingMotorPin["IN4"])
-        # )
+        self.raspberryPi = raspberryPi
+
         self.logMessage = logMessage
         self.cap = cap
 
@@ -107,27 +101,29 @@ class Entry:
                 self.logMessage(f"[INFO] Classified as: {label}")
                 self.create_log(label)
 
-                # self.stepperMotor = StepperMotor(
-                #     int(self.steppingMotorPin["IN1"]), 
-                #     int(self.steppingMotorPin["IN2"]), 
-                #     int(self.steppingMotorPin["IN3"]), 
-                #     int(self.steppingMotorPin["IN4"]),
-                #     test_material = label
-                # )
-                # time.sleep(2)
+                if self.raspberryPi:
+                    self.stepperMotor = StepperMotor(
+                        int(self.steppingMotorPin["IN1"]), 
+                        int(self.steppingMotorPin["IN2"]), 
+                        int(self.steppingMotorPin["IN3"]), 
+                        int(self.steppingMotorPin["IN4"]),
+                        test_material = label
+                    )
+                    time.sleep(2)
 
-                # self.servoMotor = ServoMotor(int(self.servoMotorPin))
-                # time.sleep(1)
+                    self.servoMotor = ServoMotor(int(self.servoMotorPin))
+                    time.sleep(1)
 
-                # self.servoMotor.open()
-                # time.sleep(1)
+                    self.servoMotor.open()
+                    time.sleep(1)
 
-                # self.servoMotor.close()
-                # time.sleep(1)
-                
-                # self.stepperMotor.back_origin()
-                # self.processing = False 
-                # time.sleep(2)
+                    self.servoMotor.close()
+                    time.sleep(1)
+                    
+                    self.stepperMotor.back_origin()
+                    time.sleep(2)
+
+                self.processing = False 
 
 
             prev_gray = gray
