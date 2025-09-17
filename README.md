@@ -1,1 +1,19 @@
 # CVI-Waste-Classification-App
+Epoch [13/30] Train Loss: 0.5467 Val Loss: 0.7065 Val Acc: 0.6958
+Epoch [14/30] Train Loss: 0.5230 Val Loss: 0.5736 Val Acc: 0.7581
+Epoch [15/30] Train Loss: 0.5918 Val Loss: 0.5176 Val Acc: 0.8130
+Epoch [16/30] Train Loss: 0.4858 Val Loss: 0.5879 Val Acc: 0.7531
+Epoch [17/30] Train Loss: 0.5339 Val Loss: 0.6256 Val Acc: 0.7581
+Epoch [18/30] Train Loss: 0.5237 Val Loss: 0.6291 Val Acc: 0.7456
+Epoch [19/30] Train Loss: 0.4902 Val Loss: 0.4524 Val Acc: 0.8229
+Epoch [20/30] Train Loss: 0.4437 Val Loss: 0.6279 Val Acc: 0.7731
+Epoch [21/30] Train Loss: 0.4950 Val Loss: 0.4618 Val Acc: 0.8105
+Epoch [22/30] Train Loss: 0.5047 Val Loss: 0.4898 Val Acc: 0.8030
+Epoch [23/30] Train Loss: 0.4709 Val Loss: 0.3494 Val Acc: 0.8728
+Epoch [24/30] Train Loss: 0.4125 Val Loss: 0.7261 Val Acc: 0.7332
+Epoch [25/30] Train Loss: 0.4337 Val Loss: 0.3279 Val Acc: 0.8653
+Epoch [26/30] Train Loss: 0.3951 Val Loss: 0.5676 Val Acc: 0.7781
+Epoch [27/30] Train Loss: 0.4165 Val Loss: 0.4118 Val Acc: 0.8229
+Epoch [28/30] Train Loss: 0.4412 Val Loss: 0.3626 Val Acc: 0.8554
+Epoch [29/30] Train Loss: 0.4204 Val Loss: 0.3723 Val Acc: 0.8554
+Epoch [30/30] Train Loss: 0.4048 Val Loss: 0.3649 Val Acc: 0.8653
