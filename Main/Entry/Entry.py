@@ -39,12 +39,20 @@ class Entry:
 
         self.logMessage = logMessage
         self.cap = cap
+        self.kill = threading.Event()
+        self.recognizeThread = None
 
+    def start_recognize_thread(self):
         recognizeThread = threading.Thread(
             target=self.start_recognize,
             daemon=True
         )
         recognizeThread.start()
+    
+    def stop(self):
+        self.kill.set()
+        if self.recognizeThread is not None:
+            self.recognizeThread.join(2)
 
     def start_recognize(self):
 
@@ -78,7 +86,7 @@ class Entry:
 
             self.logMessage("[INFO] Recognition started...")
 
-            while True:
+            while not self.kill.is_set():
                 time.sleep(3)
                 ret, frame = self.cap.read()
                 if not ret:
