@@ -15,16 +15,14 @@ from Main.StepperMotor.StepperMotor import StepperMotor
 class Entry:
     relativePath = os.getcwd()
     logDirectoryPath = os.path.join(relativePath, 'WasteClassificationAppLog')
-    
-    imageDirectoryPath = os.path.join(relativePath, 'WasteClassificationAppImage')
 
-    # columnNames = {
-    #     'Image': pd.Series([], dtype='str'),
-    #     'CreatedDate': pd.Series([], dtype='datetime64[ns]'),
-    #     'Classification': pd.Series([], dtype='str')
-    # }
+    columnNames = {
+        'Image': pd.Series([], dtype='str'),
+        'CreatedDate': pd.Series([], dtype='datetime64[ns]'),
+        'Classification': pd.Series([], dtype='str')
+    }
     createdDateTime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    # classificationSummary = pd.DataFrame(columnNames)
+    classificationSummary = pd.DataFrame(columnNames)
 
     def __init__(self, servoMotorPin, stepperMotorPin, logMessage, cap, raspberryPi):
         self.servoMotorPin = servoMotorPin
@@ -86,11 +84,8 @@ class Entry:
             if non_zero_count > 5000 and (datetime.now().timestamp() - last_detect_time > cooldown) and not self.processing:
                 self.processing = True
                 last_detect_time = datetime.now().timestamp()
-                
-                # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                # # img_path = f"captured_{timestamp}.jpg"
-                # cv2.imwrite(self.imageDirectoryPath + "_" + timestamp + ".jpg", frames
-                self.save_image(frame)
+
+                imgPath = self.save_image(frame)
 
                 img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img_pil = Image.fromarray(img_rgb)
@@ -126,6 +121,8 @@ class Entry:
                     self.stepperMotor.back_origin()
                     time.sleep(2)
 
+                self.create_task_history(imgPath, label)
+
                 self.processing = False 
                 time.sleep(2)
 
@@ -136,15 +133,23 @@ class Entry:
         currentDate = datetime.now().strftime('%Y-%m-%d')
         currentTime = datetime.now().strftime('%H%M%S')
 
-        if not os.path.isdir(self.imageDirectoryPath):
-            os.makedirs(self.imageDirectoryPath)
+        if not os.path.isdir(self.logDirectoryPath):
+            os.makedirs(self.logDirectoryPath)
+        if not os.path.isdir(self.logDirectoryPath + '/' + currentDate):
+            os.makedirs(self.logDirectoryPath + '/' + currentDate)
+        if not os.path.isdir(self.logDirectoryPath + '/' + currentDate + '/Image'):
+            os.makedirs(self.logDirectoryPath + '/' + currentDate + '/Image')
 
-        dateDir = os.path.join(self.imageDirectoryPath, currentDate)
-        if not os.path.isdir(dateDir):
-            os.makedirs(dateDir)
+        try:
+            imagePath = self.logDirectoryPath + '/' + currentDate + '/Image/' + currentTime + '.jpg'
+            cv2.imwrite(imagePath, frame)
 
-        imagePath = os.path.join(dateDir, f"{currentTime}.jpg")
-        cv2.imwrite(imagePath, frame)
+            return imagePath
+        except Exception as e:
+            self.create_log(f"Unable to store the image due to {str(e)}")     
+
+            return str(e)
+
 
     def create_log(self, input):
         currentDate = datetime.now().strftime('%Y-%m-%d')
@@ -152,9 +157,34 @@ class Entry:
             os.makedirs(self.logDirectoryPath)
         if not os.path.isdir(self.logDirectoryPath + '/' + currentDate):
             os.makedirs(self.logDirectoryPath + '/' + currentDate)
+        if not os.path.isdir(self.logDirectoryPath + '/' + currentDate + '/Log'):
+            os.makedirs(self.logDirectoryPath + '/' + currentDate + '/Log')
 
-        dailyLog = self.logDirectoryPath + '/' + currentDate + '/' + currentDate + '.log'
+        dailyLog = self.logDirectoryPath + '/' + currentDate + '/Log/' + currentDate + '.log'
         logString = datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' - ' + str(input) + '\n'
 
         with open(dailyLog, 'a+') as file:
             file.write(logString)
+
+
+    def create_task_history(self, imagePath, label):
+        currentDate = datetime.now().strftime('%Y-%m-%d')
+        if not os.path.isdir(self.logDirectoryPath):
+            os.makedirs(self.logDirectoryPath)
+        if not os.path.isdir(self.logDirectoryPath+ '/' + currentDate):
+            os.makedirs(self.logDirectoryPath+ '/' + currentDate)
+        if not os.path.isdir(self.logDirectoryPath+ '/' + currentDate + '/TaskHistory'):
+            os.makedirs(self.logDirectoryPath+ '/' + currentDate + '/TaskHistory')
+
+        try:
+            newRow = {
+                'Image': imagePath,
+                'CreatedDate': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'Classification': label
+            }
+            self.classificationSummary = pd.concat([self.classificationSummary, pd.DataFrame([newRow])], ignore_index=True)
+            self.classificationSummary.to_csv(self.logDirectoryPath+ '/' + currentDate + '/TaskHistory/' + self.createdDateTime +'ClassificationSummary.csv', index=False)
+        except Exception as e:
+            self.create_log('Cannot update ClassificationSummary.csv file, close the csv file so that it can be updated')
+
+
