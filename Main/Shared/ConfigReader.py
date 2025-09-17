@@ -1,25 +1,51 @@
 import os
 import json
 import sys
+import platform
 
 class ConfigReader:
     def __init__(self):
-        self.template = {
-            "ServoMotor": [
-                {
-                    "Signal": "17"
-                }
-            ],
-            "SteppingMotor" : [
-                {
-                    "IN1" : "17",
-                    "IN2" : "18", 
-                    "IN3" : "27",
-                    "IN4" : "22",
-                }
-            ],
-            "RaspberryPi" : False
-        }
+        system = platform.system()
+
+        if system == "Linux":
+            self.template = {
+                "ServoMotor": [
+                    {
+                        "Signal": "13"
+                    }
+                ],
+                "SteppingMotor" : [
+                    {
+                        "IN1" : "17",
+                        "IN2" : "18", 
+                        "IN3" : "27",
+                        "IN4" : "22",
+                    }
+                ],
+                "RaspberryPi" : True,
+                "ModelPath" : "/home/alexfong/PythonProjects/waste_classifier.pth",
+                "BackgroundPath": "/home/alexfong/PythonProjects/Background.jpg"    
+            }
+        else:
+            self.template = {
+                "ServoMotor": [
+                    {
+                        "Signal": "13"
+                    }
+                ],
+                "SteppingMotor" : [
+                    {
+                        "IN1" : "17",
+                        "IN2" : "18", 
+                        "IN3" : "27",
+                        "IN4" : "22",
+                    }
+                ],
+                "RaspberryPi" : False,
+                "ModelPath" : "/home/alexfong/PythonProjects/waste_classifier.pth",
+                "BackgroundPath": "/home/alexfong/PythonProjects/Background.jpg"    
+            }
+        
 
         self.env = "Demo"
 
