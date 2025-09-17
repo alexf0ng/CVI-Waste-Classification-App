@@ -1,15 +1,18 @@
-import lgpio
 import time
 
 class ServoMotor:
-    def __init__(self, gpio, chip=0, min_us=500, max_us=2500):
-        self.chip = lgpio.gpiochip_open(chip)
-        self.gpio = gpio
-        self.frequency = 50
-        self.period_ns = int(1e9 / self.frequency)
-        self.min_us = min_us
-        self.max_us = max_us
-        lgpio.gpio_claim_output(self.chip, self.gpio)
+    def __init__(self, gpio, raspberryPi, chip=0, min_us=500, max_us=2500):
+        if raspberryPi:
+            import lgpio
+            self.chip = lgpio.gpiochip_open(chip)
+            self.gpio = gpio
+            self.frequency = 50
+            self.period_ns = int(1e9 / self.frequency)
+            self.min_us = min_us
+            self.max_us = max_us
+            lgpio.gpio_claim_output(self.chip, self.gpio)
+        else:
+            pass
 
     def move_to(self, angle):
         if angle < 0: angle = 0

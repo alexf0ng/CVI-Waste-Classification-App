@@ -1,21 +1,24 @@
-import lgpio
 import time
 
 class StepperMotor:
-    def __init__(self, in1, in2, in3, in4, chip=0, test_material=None):
-        self.steps = 0
-        self.IN1, self.IN2, self.IN3, self.IN4 = in1, in2, in3, in4
-        self.chip = lgpio.gpiochip_open(chip)
-        for pin in [self.IN1, self.IN2, self.IN3, self.IN4]:
-            lgpio.gpio_claim_output(self.chip, pin)
-        self.sequence = [
-            [1,0,0,0],[1,1,0,0],[0,1,0,0],[0,1,1,0],
-            [0,0,1,0],[0,0,1,1],[0,0,0,1],[1,0,0,1]
-        ]
-        self.steps_per_degree = 512 / 360
+    def __init__(self, in1, in2, in3, in4, raspberryPi, chip=0, test_material=None):
+        if raspberryPi:
+            import lgpio
+            self.steps = 0
+            self.IN1, self.IN2, self.IN3, self.IN4 = in1, in2, in3, in4
+            self.chip = lgpio.gpiochip_open(chip)
+            for pin in [self.IN1, self.IN2, self.IN3, self.IN4]:
+                lgpio.gpio_claim_output(self.chip, pin)
+            self.sequence = [
+                [1,0,0,0],[1,1,0,0],[0,1,0,0],[0,1,1,0],
+                [0,0,1,0],[0,0,1,1],[0,0,0,1],[1,0,0,1]
+            ]
+            self.steps_per_degree = 512 / 360
 
-        if test_material:
-            self.move_material(test_material)
+            if test_material:
+                self.move_material(test_material)
+        else:
+            pass
 
     def spin(self, steps, delay=0.001, direction=1):
         seq = self.sequence if direction>0 else list(reversed(self.sequence))

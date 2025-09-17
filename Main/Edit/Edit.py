@@ -104,21 +104,30 @@ class Edit:
     def edit_button_on_click(self):
         text = self.settingsBox.get("1.0", "end").strip()
         try:
-            newSettings = json.loads(text)
+            safe_text = text.replace("\\", "/")
+
+            newSettings = json.loads(safe_text)
 
             self.appSettings = newSettings
-            
+                
             if self.configReader.update_all_settings(newSettings):
                 self.log_message("Settings updated successfully.")
-                self.popUp.show_popup(title="Success!",message="Settings updated successfully" ,isSuccess = True )
+                self.popUp.show_popup(
+                    title="Success!",
+                    message="Settings updated successfully",
+                    isSuccess=True
+                )
                 self.next_button_on_click()
-            else:
-                self.log_message("Unable to update!")
-                self.popUp.show_popup(title="Fail!",message="Settings did not updated successfully" ,isSuccess = False )
-            
 
         except json.JSONDecodeError as e:
             self.log_message(f"Invalid JSON format: {e}")
+            self.log_message("Unable to update!")
+            self.popUp.show_popup(
+                title="Fail!",
+                message="Settings did not update successfully",
+                isSuccess=False
+            )
+
 
 
     def destroy(self):

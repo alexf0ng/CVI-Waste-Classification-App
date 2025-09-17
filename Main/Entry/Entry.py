@@ -127,7 +127,7 @@ class Entry:
                         )
                         time.sleep(2)
 
-                        self.servoMotor = ServoMotor(int(self.servoMotorPin))
+                        self.servoMotor = ServoMotor(int(self.servoMotorPin), self.raspberryPi)
                         time.sleep(1)
 
                         self.servoMotor.open()
