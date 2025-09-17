@@ -208,3 +208,6 @@ __marimo__/
 
 # ignore AppSettings
 AppSettings*/
+
+# ignore Log
+WasteClasstificationAppLog/
