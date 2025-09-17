@@ -15,6 +15,9 @@ from Main.StepperMotor.StepperMotor import StepperMotor
 class Entry:
     relativePath = os.getcwd()
     logDirectoryPath = os.path.join(relativePath, 'WasteClassificationAppLog')
+    
+    imageDirectoryPath = os.path.join(relativePath, 'WasteClassificationAppImage')
+
     # columnNames = {
     #     'Image': pd.Series([], dtype='str'),
     #     'CreatedDate': pd.Series([], dtype='datetime64[ns]'),
@@ -84,10 +87,10 @@ class Entry:
                 self.processing = True
                 last_detect_time = datetime.now().timestamp()
                 
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                img_path = f"captured_{timestamp}.jpg"
-                cv2.imwrite(img_path, frame)
-                self.logMessage(f"[INFO] Picture captured and saved at {img_path}")
+                # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                # # img_path = f"captured_{timestamp}.jpg"
+                # cv2.imwrite(self.imageDirectoryPath + "_" + timestamp + ".jpg", frames
+                self.save_image(frame)
 
                 img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img_pil = Image.fromarray(img_rgb)
@@ -124,9 +127,24 @@ class Entry:
                     time.sleep(2)
 
                 self.processing = False 
+                time.sleep(2)
 
 
             prev_gray = gray
+
+    def save_image(self, frame):
+        currentDate = datetime.now().strftime('%Y-%m-%d')
+        currentTime = datetime.now().strftime('%H%M%S')
+
+        if not os.path.isdir(self.imageDirectoryPath):
+            os.makedirs(self.imageDirectoryPath)
+
+        dateDir = os.path.join(self.imageDirectoryPath, currentDate)
+        if not os.path.isdir(dateDir):
+            os.makedirs(dateDir)
+
+        imagePath = os.path.join(dateDir, f"{currentTime}.jpg")
+        cv2.imwrite(imagePath, frame)
 
     def create_log(self, input):
         currentDate = datetime.now().strftime('%Y-%m-%d')
