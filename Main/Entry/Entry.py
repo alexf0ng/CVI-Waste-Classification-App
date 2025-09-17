@@ -80,6 +80,7 @@ class Entry:
                 self.logMessage("[ERROR] Failed to grab frame")
                 break
 
+            time.sleep(2)
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             diff = cv2.absdiff(prev_gray, gray)
             _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
@@ -88,6 +89,11 @@ class Entry:
             if non_zero_count > 5000 and (datetime.now().timestamp() - last_detect_time > cooldown) and not self.processing:
                 self.processing = True
                 last_detect_time = datetime.now().timestamp()
+                
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                img_path = f"captured_{timestamp}.jpg"
+                cv2.imwrite(img_path, frame)
+                self.logMessage(f"[INFO] Picture captured and saved at {img_path}")
 
                 img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img_pil = Image.fromarray(img_rgb)
@@ -108,24 +114,23 @@ class Entry:
                 #     int(self.steppingMotorPin["IN4"]),
                 #     test_material = label
                 # )
-                # time.sleep(1)
-
+                # time.sleep(2)
 
                 # self.servoMotor = ServoMotor(int(self.servoMotorPin))
+                # time.sleep(1)
+
                 # self.servoMotor.open()
                 # time.sleep(1)
+
                 # self.servoMotor.close()
                 # time.sleep(1)
-
+                
                 # self.stepperMotor.back_origin()
-
-                self.processing = False 
+                # self.processing = False 
+                # time.sleep(2)
 
 
             prev_gray = gray
-
-
-
 
     def create_log(self, input):
         currentDate = datetime.now().strftime('%Y-%m-%d')
