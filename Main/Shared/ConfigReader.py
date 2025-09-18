@@ -6,6 +6,7 @@ import platform
 class ConfigReader:
     def __init__(self):
         system = platform.system()
+        relative = os.getcwd()
 
         if system == "Linux":
             self.template = {
@@ -42,8 +43,8 @@ class ConfigReader:
                     }
                 ],
                 "RaspberryPi" : False,
-                "ModelPath" : "/home/alexfong/PythonProjects/waste_classifier.pth",
-                "BackgroundPath": "/home/alexfong/PythonProjects/Background.jpg"    
+                "ModelPath" : f"{relative}/_internal/waste_classifier.pth",
+                "BackgroundPath": f"{relative}/_internal/Background.jpg"    
             }
         
 
@@ -76,10 +77,13 @@ class ConfigReader:
                     json.dump(self.template, file, indent=4)
             
             self.filePath = appSettingsFile
+            # self.update_path()
     
         except Exception:
             basePath = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
             self.filePath = os.path.join(basePath, 'AppSettings.json')
+
+        
 
     def read_all_settings(self):
         with open(self.filePath, "r") as file:
@@ -98,3 +102,29 @@ class ConfigReader:
             return True
         except Exception as e:
             return False
+        
+
+    # def update_path(self, modelPath=None, bgPath=None):
+    #     if getattr(sys, 'frozen', False):
+    #         base_dir = sys._MEIPASS 
+    #     else:
+    #         base_dir = os.getcwd() 
+
+    #     modelPath = modelPath or os.path.join(base_dir, "waste_classifier.pth")
+    #     bgPath = bgPath or os.path.join(base_dir, "Background.jpg")
+
+    #     self.template['ModelPath'] = modelPath
+    #     self.template['BackgroundPath'] = bgPath
+
+    #     try:
+    #         if hasattr(self, 'filePath') and self.filePath:
+    #             with open(self.filePath, 'r') as f:
+    #                 config = json.load(f)
+
+    #             config['ModelPath'] = modelPath
+    #             config['BackgroundPath'] = bgPath
+
+    #             with open(self.filePath, 'w') as f:
+    #                 json.dump(config, f, indent=4)
+    #     except Exception as e:
+    #         print(f"Failed to update paths in config: {e}")

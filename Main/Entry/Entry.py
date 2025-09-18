@@ -249,6 +249,8 @@ class Entry:
                         time.sleep(1)
                 
                 prev_gray = gray
+                if not self.raspberryPi:
+                    time.sleep(3)
 
         except Exception as e:
             self.logMessage(f"Fail due to {str(e)}")

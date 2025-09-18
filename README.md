@@ -1,30 +1,33 @@
-Epoch [1/30] Train Loss: 1.1491 Val Loss: 1.3339 Val Acc: 0.4763
-Epoch [2/30] Train Loss: 0.9073 Val Loss: 0.9141 Val Acc: 0.6309
-Epoch [3/30] Train Loss: 0.7856 Val Loss: 0.8885 Val Acc: 0.6459
-Epoch [4/30] Train Loss: 0.7485 Val Loss: 1.1798 Val Acc: 0.5112
-Epoch [5/30] Train Loss: 0.7442 Val Loss: 0.6458 Val Acc: 0.7282
-Epoch [6/30] Train Loss: 0.6605 Val Loss: 0.8528 Val Acc: 0.6733
-Epoch [7/30] Train Loss: 0.6817 Val Loss: 0.5759 Val Acc: 0.7731
-Epoch [8/30] Train Loss: 0.6338 Val Loss: 0.6302 Val Acc: 0.7382
-Epoch [9/30] Train Loss: 0.6582 Val Loss: 0.8523 Val Acc: 0.7207
-Epoch [10/30] Train Loss: 0.5902 Val Loss: 1.2640 Val Acc: 0.6185
-Epoch [11/30] Train Loss: 0.5671 Val Loss: 0.6046 Val Acc: 0.7382
-Epoch [12/30] Train Loss: 0.5182 Val Loss: 0.7968 Val Acc: 0.7207
-Epoch [13/30] Train Loss: 0.5753 Val Loss: 1.0811 Val Acc: 0.6658
-Epoch [14/30] Train Loss: 0.5410 Val Loss: 0.5506 Val Acc: 0.7656
-Epoch [15/30] Train Loss: 0.5215 Val Loss: 0.4848 Val Acc: 0.8030
-Epoch [16/30] Train Loss: 0.5004 Val Loss: 0.6550 Val Acc: 0.7232
-Epoch [17/30] Train Loss: 0.4829 Val Loss: 0.7080 Val Acc: 0.7556
-Epoch [18/30] Train Loss: 0.5010 Val Loss: 0.5196 Val Acc: 0.8080
-Epoch [19/30] Train Loss: 0.4837 Val Loss: 0.4167 Val Acc: 0.8180
-Epoch [20/30] Train Loss: 0.4488 Val Loss: 0.4392 Val Acc: 0.8254
-Epoch [21/30] Train Loss: 0.4651 Val Loss: 0.4207 Val Acc: 0.8254
-Epoch [22/30] Train Loss: 0.4227 Val Loss: 0.6033 Val Acc: 0.7805
-Epoch [23/30] Train Loss: 0.5144 Val Loss: 0.7263 Val Acc: 0.7606
-Epoch [24/30] Train Loss: 0.4409 Val Loss: 0.3889 Val Acc: 0.8678
-Epoch [25/30] Train Loss: 0.3989 Val Loss: 0.5666 Val Acc: 0.7980
-Epoch [26/30] Train Loss: 0.4351 Val Loss: 0.5189 Val Acc: 0.7805
-Epoch [27/30] Train Loss: 0.3582 Val Loss: 0.5254 Val Acc: 0.7980
-Epoch [28/30] Train Loss: 0.4213 Val Loss: 0.7211 Val Acc: 0.7631
-Epoch [29/30] Train Loss: 0.3738 Val Loss: 0.4975 Val Acc: 0.8030
-Epoch [30/30] Train Loss: 0.4069 Val Loss: 0.3652 Val Acc: 0.8554
+# Epoch [1/30] Train Loss: 1.1491 Val Loss: 1.3339 Val Acc: 0.4763
+# Epoch [2/30] Train Loss: 0.9073 Val Loss: 0.9141 Val Acc: 0.6309
+# Epoch [3/30] Train Loss: 0.7856 Val Loss: 0.8885 Val Acc: 0.6459
+# Epoch [4/30] Train Loss: 0.7485 Val Loss: 1.1798 Val Acc: 0.5112
+# Epoch [5/30] Train Loss: 0.7442 Val Loss: 0.6458 Val Acc: 0.7282
+# Epoch [6/30] Train Loss: 0.6605 Val Loss: 0.8528 Val Acc: 0.6733
+# Epoch [7/30] Train Loss: 0.6817 Val Loss: 0.5759 Val Acc: 0.7731
+# Epoch [8/30] Train Loss: 0.6338 Val Loss: 0.6302 Val Acc: 0.7382
+# Epoch [9/30] Train Loss: 0.6582 Val Loss: 0.8523 Val Acc: 0.7207
+# Epoch [10/30] Train Loss: 0.5902 Val Loss: 1.2640 Val Acc: 0.6185
+# Epoch [11/30] Train Loss: 0.5671 Val Loss: 0.6046 Val Acc: 0.7382
+# Epoch [12/30] Train Loss: 0.5182 Val Loss: 0.7968 Val Acc: 0.7207
+# Epoch [13/30] Train Loss: 0.5753 Val Loss: 1.0811 Val Acc: 0.6658
+# Epoch [14/30] Train Loss: 0.5410 Val Loss: 0.5506 Val Acc: 0.7656
+# Epoch [15/30] Train Loss: 0.5215 Val Loss: 0.4848 Val Acc: 0.8030
+# Epoch [16/30] Train Loss: 0.5004 Val Loss: 0.6550 Val Acc: 0.7232
+# Epoch [17/30] Train Loss: 0.4829 Val Loss: 0.7080 Val Acc: 0.7556
+# Epoch [18/30] Train Loss: 0.5010 Val Loss: 0.5196 Val Acc: 0.8080
+# Epoch [19/30] Train Loss: 0.4837 Val Loss: 0.4167 Val Acc: 0.8180
+# Epoch [20/30] Train Loss: 0.4488 Val Loss: 0.4392 Val Acc: 0.8254
+# Epoch [21/30] Train Loss: 0.4651 Val Loss: 0.4207 Val Acc: 0.8254
+# Epoch [22/30] Train Loss: 0.4227 Val Loss: 0.6033 Val Acc: 0.7805
+# Epoch [23/30] Train Loss: 0.5144 Val Loss: 0.7263 Val Acc: 0.7606
+# Epoch [24/30] Train Loss: 0.4409 Val Loss: 0.3889 Val Acc: 0.8678
+# Epoch [25/30] Train Loss: 0.3989 Val Loss: 0.5666 Val Acc: 0.7980
+# Epoch [26/30] Train Loss: 0.4351 Val Loss: 0.5189 Val Acc: 0.7805
+# Epoch [27/30] Train Loss: 0.3582 Val Loss: 0.5254 Val Acc: 0.7980
+# Epoch [28/30] Train Loss: 0.4213 Val Loss: 0.7211 Val Acc: 0.7631
+# Epoch [29/30] Train Loss: 0.3738 Val Loss: 0.4975 Val Acc: 0.8030
+# Epoch [30/30] Train Loss: 0.4069 Val Loss: 0.3652 Val Acc: 0.8554
+
+# To build: pyinstaller --onefile --noconsole --add-data "waste_classifier.pth;." --add-data "Background.jpg;." Home.py
+
