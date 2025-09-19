@@ -1,6 +1,5 @@
 import cv2
 import customtkinter
-import threading
 from PIL import Image
 from customtkinter import CTkImage
 from Main.Shared.ConfigReader import ConfigReader
@@ -125,14 +124,21 @@ class Connect:
             self.log_message("Camera connected.")
             self.update_frame()
 
-            self.root.after(10, self.entry)
+            self.root.after(10, self.entry_start)
             self.disconnectButton.after(6000, self.delay_disconnect_button)
 
         else:
             self.log_message("Camera already connected.")
 
     def disconnect_button_on_click(self):
-        self.entryThread.join(2)
+        self.entry.stop()
+        self.cap.release()
+        if self.cap is not None:
+            self.cap.release()
+            self.cap = None 
+            self.video_label.configure(image="", text="Not connected")
+            self.video_label.imgtk = None
+        self.log_message("Camera disconnected.")
         self.disconnectButton.pack_forget()
         self.nextButton.pack(
             side='right',
@@ -143,36 +149,40 @@ class Connect:
             padx=(0, 10)
         )
 
-    def entry(self):      
+    # def entry(self):      
+    #     appSettings = self.configReader.read_all_settings()
+    #     self.entryThread = threading.Thread(
+    #         target=self.entry_start,
+    #         args=(appSettings,),
+    #         daemon=True,
+
+    #     )
+    #     self.entryThread.start()
+
+
+    def entry_start(self):
         appSettings = self.configReader.read_all_settings()
-        self.entryThread = threading.Thread(
-            target=self.entry_start,
-            args=(appSettings,),
-            daemon=True,
-
-        )
-        self.entryThread.start()
-
-
-    def entry_start(self, appSettings):
-        self.entry = Entry(appSettings['ServoMotor'][0]['Signal'], appSettings['SteppingMotor'][0], self.log_message, self.cap)
+        self.entry = Entry(appSettings['ServoMotor'][0]['Signal'], appSettings['SteppingMotor'][0], self.log_message, self.cap, appSettings['RaspberryPi'], appSettings['ModelPath'], appSettings['BackgroundPath'])
+        self.entry.start_recognize_thread()
         
 
     def update_frame(self):
-        if self.cap is not None:
-            ret, frame = self.cap.read()
-            if not ret:
-                self.root.after(50, self.update_frame)
-                return
+        if self.cap is None or not self.cap.isOpened():
+            return 
 
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(frame)
+        ret, frame = self.cap.read()
+        if not ret:
+            self.root.after(50, self.update_frame)
+            return
 
-            imgtk = CTkImage(light_image=img, size=(800, 500))
-            self.video_label.configure(image=imgtk, text="")
-            self.video_label.imgtk = imgtk
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(frame)
+        imgtk = CTkImage(light_image=img, size=(800, 500))
 
-            self.root.after(10, self.update_frame)
+        self.video_label.configure(image=imgtk, text="")
+        self.video_label.imgtk = imgtk
+
+        self.root.after(10, self.update_frame)
             
     
 

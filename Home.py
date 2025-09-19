@@ -1,4 +1,3 @@
-
 import customtkinter
 import sys
 from Main.Connect.Connect import Connect
@@ -7,6 +6,7 @@ class Home:
     def __init__(self, root):
         self.root = root
         root.title('Waste Classifier App')
+        customtkinter.set_appearance_mode("dark")
 
         root.grid_rowconfigure(0, weight = 1)
         root.grid_columnconfigure(0, weight = 1)
