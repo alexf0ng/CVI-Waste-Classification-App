@@ -43,8 +43,8 @@ class ConfigReader:
                     }
                 ],
                 "RaspberryPi" : False,
-                "ModelPath" : f"{relative}/_internal/waste_classifier.pth",
-                "BackgroundPath": f"{relative}/_internal/Background.jpg"    
+                "ModelPath" : f"{relative}\_internal\waste_classifier.pth",
+                "BackgroundPath": f"{relative}\_internal\Background.jpg"    
             }
         
 

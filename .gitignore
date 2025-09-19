@@ -217,3 +217,9 @@ build/
 dist/
 __pycache__/
 *.spec
+
+# jpg
+*.jpg
+
+# csv
+*.csv
